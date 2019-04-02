@@ -3,7 +3,7 @@
 Writing sharable (R) code. Uh... and sharing it!
 ================================================
 
-In this short tutorial we will build an R package and a drat repository to host it, using GitHub as a Web Server. At the end we will set up Travis CI to automatically push updates of our package into the drat repository.
+In this short tutorial we will build an R package, write unit tests for it, push it in a GitHub repository and integrate Travis CI with it. <!-- Build  a drat repository to host  --> <!-- it, using GitHub as a Web Server. At the end we will set up Travis CI to  --> <!-- automatically push updates of our package into the drat repository.  -->
 
 Prerequisites:
 --------------
@@ -13,12 +13,12 @@ Prerequisites:
     -   `devtools` and `roxygen2` in order to build R packages
     -   `tidyverse`, `rlang`
     -   `drat`
--   (Optional) A github account. If you wish to replicate steps X-X herein you need your own github account.
+-   (Optional) A github account. If you wish to replicate steps 8 onwards herein you need your own github account. You also need a Travis-CI account for which you can sign up with your github account.
 
 Create an R package
 -------------------
 
-I usually like to jump right into the essence of it, so let's start by building a minimal R package following [Hilary Parker's building steps](https://hilaryparker.com/2014/04/29/writing-an-r-package-from-scratch/). Afterwards, we can discuss when or why build an R package along with some good practices. Most of the discussed topics below are taken from Hadley Wickham's [R packages](http://r-pkgs.had.co.nz/).
+Let's jump right into it by building a minimal R package following [Hilary Parker's building steps](https://hilaryparker.com/2014/04/29/writing-an-r-package-from-scratch/). Afterwards, we can discuss when or why to build an R package along with some good practices. Most of the discussed topics below are taken from Hadley Wickham's [R packages](http://r-pkgs.had.co.nz/).
 
 ### Step 1: Create a package directory
 
@@ -33,17 +33,47 @@ setwd("parent_directory")
 # Its reasonable but not necessary to name the directory with the same name as 
 # the package 
 usethis::create_package("bloodstats")
+# If you run the above in RStudio, you will likely get a new RStudio window open
+# automatically, with the project name "bloodstats"
 ```
 
-Alternatively, from within `RStudio`, you may perform the step above by going to `File` -&gt; `New Project...` -&gt; `New Directory` -&gt; `R package`, type in the package name and location and click `Create Project`. Notice, you may also add existing functions at this step.
+(Alternatively, from within `RStudio`, you may perform the step above by going to `File` -&gt; `New Project...` -&gt; `New Directory` -&gt; `R package`, type in the package name and location and click `Create Project`. Notice, you may also add existing functions at this step.)
 
-What the above function did was to create a directory called `bloodstats/`, inside the `parent_directory/`, and inside `bloodstats/` two subdirectories, - `R/`, that will contain the package source code and - `man/`, that will contain the package's documentation. Finally, there are two files, `DESCRIPTION` and `NAMESPACE`. Go ahead and edit the `DESCRIPTION` file with a short description of the package, your name and contact information, etc. This is the file where you'll also be keeping track of your package versioning. [The package namespace](http://r-pkgs.had.co.nz/namespace.html), as recorded in the `NAMESPACE` file, is something you should understand if you plan to share your packages. Namespace takes care of imports and exports such that your package will coexist in harmony with other packages. The file `NAMESPACE` is something you shouldn't edit by hand, instead `roxygen2` will take care of updating this file everytime you build your documentation.
+What the above function did was to create a directory called `bloodstats/`, inside the `parent_directory/`, and inside `bloodstats/` two subdirectories,
+
+-   `R/`, that will soon contain the package source code and
+-   `man/`, that will soon contain the package's documentation.
+
+Finally, there are two files, `DESCRIPTION` and `NAMESPACE`. Go ahead and edit the `DESCRIPTION` file with a short description of the package, your name and contact information, etc. This is the file where you'll also be keeping track of your package versioning.
+
+Here is an example of how I would have my first version of the `DESCRIPTION` look like:
+
+    Package: bloodstats
+    Title: Utilities for Metabolomics Data
+    Version: 0.0.0.9999
+    Authors@R:
+        person(
+            "Maria", "Kalimeri", email = "maria.kalimeri@nightingalehealth.com",
+            role = c("aut", "cre")
+        )
+    Description: Functions and other utilities for basic statistics on blood 
+        metabolomics data.
+    Depends:
+        R (>= 3.5.0)
+    License: MIT + file LICENSE
+    Encoding: UTF-8
+    LazyData: true
+    RoxygenNote: 6.1.1
+
+[The package's namespace](http://r-pkgs.had.co.nz/namespace.html), as recorded in the `NAMESPACE` file, is something you should understand if you plan to share your packages. Namespace takes care of imports and exports such that your package will coexist in harmony with other packages. The file `NAMESPACE` is something you shouldn't edit by hand, instead `roxygen2` will take care of updating this file everytime you build your documentation.
 
 An important note concerning the name of your package, especially if you plan to share it with others. It's good to make sure that the name of your package is not already in use by another CRAN package. You can check this by loading `https://cran.r-project.org/web/packages/bloodstats`.
 
+> The License field can be either a standard abbreviation for an open source license, like GPL-2 or BSD, or a pointer to a file containing more information, file LICENSE. The license is really only important if you’re planning on releasing your package. If you don’t, you can ignore this section. I have added an MIT license here just for demonstrational purposes.
+
 ### Step 2: Add functions
 
-Below is an example of a function that fit's the scope of our package. It takes a data frame as input (supposedly containining blood biomarkers) and returns the mean value of each column (variable) as long as this is numeric.
+Below is an example of a function that fits the scope of our package. It takes a data frame as input (supposedly containining blood biomarkers) and returns the mean value of each column (variable) as long as this is numeric.
 
 ``` r
 bloodmeans <- function(df) {
@@ -53,6 +83,12 @@ bloodmeans <- function(df) {
 ```
 
 Save this function as `bloodmeans.R` inside the `R` subdirectory.
+
+> Good to know
+>
+> Note the usage of the pipe `%>%` symbol above. The pipe is a way to write a series of operations on an R object, e.g. a data frame, in an easy-to-read way. As an example, the operation `x %>% f(y)` effectivly means `f(x, y)`. You can read more on the pipe [here](https://cran.r-project.org/web/packages/magrittr/vignettes/magrittr.html).
+>
+> Furthermore, `summarize_if` is a function of the `dplyr` package, that is part of the core tidyverse, an opinionated collection of R packages designed for data science. If you are not a tidyverse user, I strongly suggest to give it a try. A good place to start is H. Wickham's book ["R for Data Science"](https://r4ds.had.co.nz/)
 
 ### Step 3: Add documentation
 
@@ -71,7 +107,8 @@ What you need to do is type each function's description and other comments at th
 #' @author John Doe 
 #' @export 
 #' @examples 
-#' data.frame(er = c(1,2,3), c(4,5,6)) %>% 
+#' library(magrittr)
+#' data.frame(x1 = c(1,2,3), x2 = c(4,5,6)) %>% 
 #'   bloodstats::bloodmeans()
 bloodmeans <- function(df) {
   df %>%
@@ -81,7 +118,13 @@ bloodmeans <- function(df) {
 
 It is not necessary to have each function in its own file - although it usually makes the code easier to read/access by others - but when you add more than one function in a file make sure to add the documentation for each function just before its definition.
 
-Some notes on documentation. I find it always very usefull to have a working example. This often may need one or two built-in datasets. These help to demonstrate the input that the function expects and to have a working example that is short (i.e. you don't have to generate data in the example to run the function).
+Some notes on documentation. I find it always very usefull to have at least one example per function. Even for a "quick and dirty" package, working examples are sometimes saving the day. Especially if you need to demonstrate the structure of the function's input parameter(s). Such a thing may need one or two built-in datasets. We will add a demo dataset, a couple of steps later.
+
+Let's take a moment and look at the package's `NAMESPACE` now. In the above code notice two things, first the explicit call `dplyr::summarise_if` and second, at the documentation chunck, the entry:
+
+    #' @importFrom magrittr %>%
+
+They both make sure that you package will have all needed imports for this function to work, i.e. packages `dplyr` and `magrittr` in this case. At this point we need to add these two dependencies in the file `DESCRIPTION` but let's not do it yet. Simply for demo purposes, we will let `devtools::check()` pick up this error a bit later on.
 
 ### Step 4: Process documentation
 
@@ -97,19 +140,69 @@ devtools::document()
 
 This function is a wrapper for `roxygen2::roxygenize()`; it adds `.Rd` to the `man` directory, one for each object in your package, assuming you have written comments as suggested in step 3. The function will also update the `NAMESPACE` file of the main directory with the corresponding imports and exports.
 
-Remember to update your package's version from 0.0.0.9999 to 0.0.1, if you feel it's time.
+> If you see the following warning: `` Warning: The existing 'NAMESPACE' file was not generated by roxygen2,`and will not be overwritten. `` go ahead and remove the file `NAMESPACE` from the root directory. After you do so, re-run the `devtools::document()` command above.
 
-### Step 5: Write tests
+### Step 5: Run checks
+
+`devtools::check()` or [`R CMD check`](http://r-pkgs.had.co.nz/check.html#check) will check your code for common issues like documentation mismatches, missing imports etc, including pass or fail of unit tests if such exist.
+
+You should probably run checks quite often. This will help to start curing problems and incosistencies as soon as they appear rather than having to deal with a huge amount of them at a much later stage.
+
+So run the command below
+
+``` r
+devtools::check()
+```
+
+or use the RStudio build-in shortcuts if you prefer.
+
+Unless you added the `dplyr` and `magrittr` dependencies in your `DESCRIPTION` above, the check command should now throw an error at the "checking package dependencies" stage. To fix this open `DESCRIPTION` and update it as shown below:
+
+    Package: bloodstats
+    Title: Utilities for Metabolomics Data
+    Version: 0.0.1
+    Authors@R:
+        person(
+            "Maria", "Kalimeri", email = "maria.kalimeri@nightingalehealth.com",
+            role = c("aut", "cre")
+        )
+    Description: Functions and other utilities for basic statistics on blood 
+        metabolomics data.
+    Depends:
+        R (>= 3.5.0)
+    Imports:
+        dplyr,
+        magrittr
+    License: MIT + file LICENSE
+    Encoding: UTF-8
+    LazyData: true
+    RoxygenNote: 6.1.1
+
+After running checks again, there should still be a warning
+
+    ❯ checking DESCRIPTION meta-information ... WARNING
+      Invalid license file pointers: LICENSE
+
+which happens as there is a pointer to a file LICENSE that just doesn't exist. The MIT license is a 'template', so if you use it, you need `License: MIT + file LICENSE`, and a LICENSE file that looks like this:
+
+    YEAR: <Year or years when changes have been made>
+    COPYRIGHT HOLDER: <Name of the copyright holder>
+
+You can add these lines in a file called `LICENSE` in the package root and run `devtools::check()` again.
+
+> Notice in the `DESCRIPTION` above that I now increased the version of our package from the development version 0.0.0.9999 to 0.0.1
+
+### Step 6: Write tests
 
 This is an important part of package development. The main aims of writing formal tests is to make sure, that you will not break code that used to work, when you come back in the future to add features or improve existing code.
 
 You can use `usethis::use_testthat()` to set up the package to use tests. This command will do all the necessary steps below:
 
 1.  Create a tests/testthat directory.
-2.  Adds testthat to the Suggests field in the DESCRIPTION.
+2.  Adds testthat to the `Suggests` field in the `DESCRIPTION`. The `Suggests` lines indicate that while your package can take advantage of a package, this is not required to make it work.
 3.  Create a file tests/testthat.R that runs all your tests when R CMD check runs. (See more on automated checking [here](http://r-pkgs.had.co.nz/check.html#check).)
 
-The next step is to actually write the tests. We have only one function at the moment, `bloodmeans()`. Create an R file with the name `test-bloodmeans.R` and type the following contents.
+The next step is to actually write the tests. We have only one function at the moment, `bloodmeans()`. Create an R file with the name `test-bloodmeans.R`, save it in subdir `./tests/testthat/` and type in the following contents.
 
 ``` r
 context("bloodmeans")
@@ -135,35 +228,24 @@ test_that("bloodmeans returns expected result given input", {
 })
 ```
 
-You may now run the tests as shown below:
+You may now run the tests:
 
 ``` r
 devtools::test()
 ```
 
-Or you may use the RStudio build-in shortcuts. Refer to the related section in [R-packages:tests](http://r-pkgs.had.co.nz/tests.html) for more info on proper unit testing.
+Or you may use the RStudio build-in shortcuts.
 
-### Step 6: Run checks
+Note that as soon as you add tests in your package, `devtools::check()` will also include them in the check step.
 
-After your tests have passed, you should perform another important step of package development, running checks. `devtools::check()` or [`R CMD check`](http://r-pkgs.had.co.nz/check.html#check) will check your code for common issues like documentation mismatches, missing imports etc, including pass or fail of unit tests if such exist.
-
-You should probably run checks quite a bit more often than tests, as this will help to start curing problems and incosistencies as soon as they appear rather than having to deal with a huge amount of them at a much later stage.
-
-So run the command below
-
-``` r
-devtools::check()
-```
-
-or use the RStudio build-in shortcuts if you prefer.
+Refer to the related section in [R-packages:tests](http://r-pkgs.had.co.nz/tests.html) for more info on proper unit testing.
 
 ### Step 7: Install your package
 
-From the parent directory, that contains the `bloodstats` folder, type the following.
+From the root directory of the `bloodstats` folder, type the following.
 
 ``` r
-setwd("../")
-devtools::install("bloodstats")
+devtools::install(".")
 ```
 
 That will get your package installed in your machine. You can try viewing the documentation of your function by typing
@@ -171,15 +253,6 @@ That will get your package installed in your machine. You can try viewing the do
 ``` r
 ?bloodmeans
 ```
-
-Finally, let us now built the source package, we will need this file later in order to insert the package into `drat`.
-
-``` r
-# Assuming your current working directory is the bloodstats
-devtools::build()
-```
-
-This will create the file `bloodstats_0.0.1.tar.gz` in the parent directory of `bloodstats`.
 
 Share your R package
 --------------------
@@ -192,16 +265,16 @@ Just as Hilary in her post, we will not dive into git and GitHub here (let me al
 
 #### Step 8a: Push initial commit
 
-Let us follow the steps [in this guide](https://help.github.com/en/articles/adding-an-existing-project-to-github-using-the-command-line) in order to create a GitHub repository for our existing R package. Do make the following addition though: between steps 4 and 5, add a file with the name `.gitignore` with at least the following contents:
+Let us follow the steps [in this guide](https://help.github.com/en/articles/adding-an-existing-project-to-github-using-the-command-line) in order to create a GitHub repository for our existing R package. Do make the following addition though: between steps 4 and 5, add a file with the name `.gitignore` with at least the following contents which constitute example lines of .gitignore contents for an R package repository.
 
 ``` r
-# example of .gitignore contents for an R package repository
 .RData
 .Rhistory
 .Rproj.user
 .Ruserdata
-# As an macOS user I also gitignore .DS_Store
 ```
+
+> If a macOS user you may also want to gitignore `.DS_Store`
 
 `.gitignore` contains the names of files that you don't want to include in your git repository; so instead of not staging them every time you commit, you permanently ignore them by adding them in this file.
 
@@ -209,7 +282,16 @@ Let us follow the steps [in this guide](https://help.github.com/en/articles/addi
 
 This is an important step so that people that land in your github repository page will have an overview of your project.
 
-As R users, it's handy to use an `Rmarkdown` document to write our description. Create a file called `README.Rmd` (add this into a file called `.Rbuildignore` in the top level of the package directory so that `devtools::check()` wont give you additional notes about non-standard files in your package folder) with the contents suggested below;
+Create a file README.md in the root of your package directory with the following contents.
+
+    bloodstats
+    ----------
+
+    A package with utilities for basic statistics on blood biomarkers.
+
+Alternatively, as an R user, especially if you use RStudio, it's handy to use an `Rmarkdown` document to write your description. Create a file called `README.Rmd` (remember to add this into a file called `.Rbuildignore` in the top level of the package directory so that `devtools::check()` wont give you additional notes about non-standard files in your package folder) with the contents suggested below.
+
+> When you copy-paste the README contents below remember to remove the backslash "\\" before the chuck \`\`\` definitions
 
     ---
     output: github_document
@@ -217,15 +299,65 @@ As R users, it's handy to use an `Rmarkdown` document to write our description. 
 
     <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-    A package with utilities for basic statistics on blood biomarkers.
+    # bloodstats
+
+    A dummy package for demo and testing. 
+
+    ## Installation
+
+    \```{r, eval = FALSE}
+    # # Install devtools if you don't have it already
+    # install.packages("devtools")
+    devtools::install_github("mariakalimeri/bloodstats")
+    \```
+
+
+    ## Examples
+
+    \```{r, eval = FALSE}
+    data.frame(var1 = c(1, 2, 3), var2 = c(4, 5, 6)) %>%
+      bloodstats::bloodmeans()
+    \ ```
+
+If you use the Rmd approach, remember to `knitr::knit()` your document in order to
+have a README.md final output.
 
 It's good to enrich your `README` with quick, getting-started examples and other notes. I often try to browse around other GitHub repositories to explore good practices, see for example the `README` file for [`patchwork`](https://github.com/thomasp85/patchwork).
 
 Add, commit and push your newly created `README.Rmd` and `README.md` files.
 
-#### Step 8c: Enable Travis-CI for the packages repository
+    git status
+    git add README*
+    git commit -m "add README"
+    git push -u origin master
 
-This step requires that
+#### Step 8c: Enable Travis-CI for your package's repository
+
+This step requires that you have a Travis-CI account (enabled with your GitHub account).
+
+> From your global GitHub &gt; Settings &gt; Applications &gt; Authorized OAuth Apps, make sure you have granted access to Travis-CI.
+
+Locally, add a file called `.travis.yml` in the root directory of your package. Below are the suggested contents.
+
+    # R for travis: see documentation at https://docs.travis-ci.com/user/languages/r
+      
+    language: R
+    cache: packages
+
+Add, commit and push your newly added `.travis.yml` file.
+
+    git status
+    git add README*
+    git commit -m "add .travis.yml"
+    git push -u origin master
+
+On the browser, in your Travis-CI account, go to Settings (upper right corner) got to Settings and enable Travis-CI for `bloodstats`. If you don't see `bloodstats` in the list of repositories, then sync your GitHub account using the `Sync account` button on the upper left side and refresh the webpage.
+
+You may now find `bloodstats` in your active repositories in your Travis-CI dashboard, where you can click on `Trigger a build`
+
+Finally, open your README.Rmd and add a travis CI status icon if you wish.
+
+    [![Build Status](https://travis-ci.org/mariakalimeri/bloodstats.svg?branch=master)](https://travis-ci.org/mariakalimeri/bloodstats)
 
 ### Step 9: Create a `drat` repository in Github and push it in github
 
@@ -233,7 +365,7 @@ This step requires that
 
 As a package author with a given GitHub account, in order to create your own R package drat repository, all that is needed is a GitHub repository named `drat` and inside it a the subdirectory `src/contrib/`.
 
-In a terminal, let's create the `drat` folder with its contents and initialize a git repository for it.
+In a terminal, let's create the `drat` folder with its contents and initialize a git repository for it. Let's place this `drat` directory in the same parent directory as `bloodstats`.
 
     mkdir drat 
     cd drat
@@ -241,13 +373,23 @@ In a terminal, let's create the `drat` folder with its contents and initialize a
     cd src
     mkdir contrib
 
-Follow the same steps as in *Step 6a* above, in order to create a git repository for this drat and push it in gihub.
+Follow the same steps as in *Step 8a* above, in order to create a git repository for this drat and push its contents in GitHub.
 
-The next step is to place packages into drat.
+The next step is to place a package into drat.
+
+Let us built the source package for `bloodstats` to insert it into `drat`. Assuming your current working directory is bloodstats type the follwoing
+
+``` r
+devtools::build()
+```
+
+This will create the file `bloodstats_0.0.1.tar.gz` in the parent directory of `bloodstats`.
 
 ``` r
 ## insert the bloodstats bundle into the drat repo on local file system
-drat::insertPackage("myPkg_0.5.tar.gz", "/srv/projects/git/drat")
+## First change location to the parent directory
+setwd("../")
+drat::insertPackage("bloodstats_0.0.1.tar.gz", "drat")
 ```
 
 ### Step 10: Add Travis CI support to your drat repository
