@@ -353,11 +353,17 @@ Add, commit and push your newly added `.travis.yml` file.
 
 On the browser, in your Travis-CI account, go to Settings (upper right corner) got to Settings and enable Travis-CI for `bloodstats`. If you don't see `bloodstats` in the list of repositories, then sync your GitHub account using the `Sync account` button on the upper left side and refresh the webpage.
 
-You may now find `bloodstats` in your active repositories in your Travis-CI dashboard, where you can click on `Trigger a build`
+You may now find `bloodstats` in your active repositories in your Travis-CI dashboard, where you can click on `Trigger a build` button.
 
-Finally, open your README.Rmd and add a travis CI status icon if you wish.
+Fingers crossed and your build will pass!
+
+Finally, open your README.Rmd and add a travis CI status icon if you wish. You can find and copy the `Status Image` if you click on the `build | unknown` icon next to the Travis-CI project title on the travis-ci webpage. Choose an icon for the master branch (in the first drop down menu) and Markdown (in the second drop down menu). The two lines of code that you should add to the README file will will look like below.
 
     [![Build Status](https://travis-ci.org/mariakalimeri/bloodstats.svg?branch=master)](https://travis-ci.org/mariakalimeri/bloodstats)
+
+------------------------------------------------------------------------
+
+> Steps 9 onwards are only a draft.
 
 ### Step 9: Create a `drat` repository in Github and push it in github
 
@@ -451,8 +457,8 @@ Further discussion on package development
 -   Documentation and package datasets. Importance of examples and links to functions from other packages.
 -   Styling your code, e.g. `styler 1.0.0`
 
-References
-----------
+Usefull links and references
+----------------------------
 
 -   [R packages by Hadley Wickham](http://r-pkgs.had.co.nz/)
 -   [Karl Broman’s Git/GitHub Guide](http://kbroman.org/github_tutorial/)

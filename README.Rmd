@@ -497,15 +497,23 @@ the `Sync account` button on the upper left side and refresh the webpage.
 You may now find `bloodstats` in your active repositories in your Travis-CI
 dashboard, where you can click on `Trigger a build` button.
 
-Finally, open your README.Rmd and add a travis CI status icon if you wish.
+Fingers crossed and your build will pass!
+
+Finally, open your README.Rmd and add a travis CI status icon if you wish. You
+can find and copy the `Status Image` if you click on the `build | unknown` icon 
+next to the Travis-CI project title on the travis-ci webpage. Choose an icon for the 
+master branch (in the first drop down menu) and Markdown (in the second drop
+down menu). The two lines of code that you should add to the README file
+will will look like below.
 
 ```
 [![Build Status](https://travis-ci.org/mariakalimeri/bloodstats.svg?branch=master)](https://travis-ci.org/mariakalimeri/bloodstats)
 ```
-
-### Step 9: Create a `drat` repository in Github and push it in github
+------------------
 
 > Steps 9 onwards are only a draft.
+
+### Step 9: Create a `drat` repository in Github and push it in github
 
 [source: Drat for package authors](http://eddelbuettel.github.io/drat/DratForPackageAuthors.html)
 
@@ -558,8 +566,6 @@ drat::insertPackage("bloodstats_0.0.1.tar.gz", "drat")
 ### Step 11: Combining Drat and Travis CI
 
 [source: Use Travis CI for automatic pushes of succesfull builds into drat](https://cran.r-project.org/web/packages/drat/vignettes/CombiningDratAndTravis.html)
-
-
 
 ## Improve package and update!
 
@@ -614,7 +620,7 @@ bloodmeans <- function(df, var = NULL) {
 functions from other packages.
 - Styling your code, e.g. `styler 1.0.0`
 
-## References 
+## Usefull links and references 
 
 - [R packages by Hadley Wickham](http://r-pkgs.had.co.nz/)
 - [Karl Broman’s Git/GitHub Guide](http://kbroman.org/github_tutorial/)
