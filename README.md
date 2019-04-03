@@ -510,7 +510,7 @@ Further discussion on package development
 Usefull links and references
 ----------------------------
 
--   **Take a look at our [`ggforestplot`](https://nightingalehealth.github.io/ggforestplot/index.html)!!** Website made with [`pkgdown`](https://pkgdown.r-lib.org/articles/pkgdown.html)
+-   **Take a look at our [`ggforestplot`](https://nightingalehealth.github.io/ggforestplot/index.html), Nightingale's first open source R package!!** Website made with [`pkgdown`](https://pkgdown.r-lib.org/articles/pkgdown.html)
 -   [R packages by Hadley Wickham](http://r-pkgs.had.co.nz/)
 -   [Karl Broman’s Git/GitHub Guide](http://kbroman.org/github_tutorial/)
 -   [How to create a GitHub repo from an existing directory](https://help.github.com/articles/adding-an-existing-project-to-github-using-the-command-line/)
