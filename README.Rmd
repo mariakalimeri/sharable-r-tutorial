@@ -15,11 +15,13 @@ knitr::opts_chunk$set(
 
 # Writing sharable (R) code. Uh... and sharing it!
 
-In this short tutorial we will build an R package, write unit tests for it, 
-push it in a GitHub repository and integrate Travis CI with it.
-<!-- Build  a drat repository to host  -->
-<!-- it, using GitHub as a Web Server. At the end we will set up Travis CI to  -->
-<!-- automatically push updates of our package into the drat repository.  -->
+In this tutorial we will build an R package, write unit tests for it
+(steps 1-7), push it in a GitHub repository and integrate Travis CI 
+with it (step 8). In step 9 we build a drat repository to host this 
+and other R packages, using GitHub as a Web Server and set up Travis CI to
+automatically push updates of our package into drat. In step 10 we make some 
+improvements in the package. We finish with providing sources for R package 
+development and other relevant topics.
 
 ## Prerequisites: 
 - (Optional) Rstudio; this is not necessary to produce R packages but it 
@@ -509,11 +511,12 @@ will will look like below.
 ```
 [![Build Status](https://travis-ci.org/mariakalimeri/bloodstats.svg?branch=master)](https://travis-ci.org/mariakalimeri/bloodstats)
 ```
-------------------
 
-> Steps 9 onwards are only a draft.
+> Step 9 is in the draft phase.
 
-### Step 9: Create a `drat` repository in Github and push it in github
+### Step 9: Create your own R package drat repository
+
+#### Step 9a: Create a `drat` git repository in GitHub
 
 [source: Drat for package authors](http://eddelbuettel.github.io/drat/DratForPackageAuthors.html)
 
@@ -556,42 +559,71 @@ setwd("../")
 drat::insertPackage("bloodstats_0.0.1.tar.gz", "drat")
 ```
 
+Git add, commit and push the latest update of this repo to GitHub. 
 
+The next step you need to do is turn on GitHub pages for `drat`. You do this by 
+going to the GitHub settings of drat and scroll down to the `GitHub Pages` section.
+Choose `master` as your source branch (unless you have a good reason to choose 
+otherwise).
 
-### Step 10: Add Travis CI support to your drat repository 
+Technically, you now have a drat repository of your own, with its first package 
+in it! Hurray!! You may very well keep this up-to-date manually as you did just 
+now. 
 
-[source: r-travis](https://github.com/craigcitro/r-travis)
+Your friend, the R user that wants to use your collection of packages, as well as
+have an easy way to update them, has already been told that your R package repository 
+is hosted in a GitHub repository named drat (e.g. https://mariakalimeri.github.io/drat/`).
+He now needs to add your drat repo to his list of R repositories:
 
+```{r}
+drat::addRepo("mariakalimeri")
+```
 
-### Step 11: Combining Drat and Travis CI
+and he is good to go. E.g. he may type 
+
+```{r}
+available.packages(repos = getOption("repos")["mariakalimeri"])
+```
+
+and hopefully see the available `bloodstats` packages sitting there happily with
+all its info.
+
+#### Step 9b: Combining Drat and Travis CI
+
+A next step is to allow Travis-CI to push automatic updates of `bloodstats` into 
+drat. To achieve this, use the link below and follow the steps in the `workflow` 
+section.
 
 [source: Use Travis CI for automatic pushes of succesfull builds into drat](https://cran.r-project.org/web/packages/drat/vignettes/CombiningDratAndTravis.html)
 
-## Improve package and update!
+### Step 10: Improve package and update!
+
+#### Step 10a: Improve existing function
 
 Let us add an extra input parameter, `var`, in `bloodmeans()`. If `var` is 
 specified, and it's a valid `df` variable, the function will attempt to group
 the input data frame by it and return means for each group.
 
-Update `bloodmeans.R` with the following, bump your packages version and git 
-add, commit and push your updates.
+Update `bloodmeans.R` with the following and try running tests for your package. 
+Do they go through?
 
 ```{r, eval = FALSE}
-#' Extract Mean Values of Blood Biomarkers  
-#' 
-#' This function accepts a dataframe as input and extracts the mean value of 
-#' each numeric variable.  
-#' 
-#' @param df a \code{data.frame} with at least one numeric variable in order to 
+#' Extract Mean Values of Blood Biomarkers
+#'
+#' This function accepts a dataframe as input and extracts the mean value of
+#' each numeric variable.
+#'
+#' @param df a \code{data.frame} with at least one numeric variable in order to
 #' get a non-empty result.
-#' @param var NULL (default) or the unquoted name of the variable by which to 
+#' @param var NULL (default) or the unquoted name of the variable by which to
 #' group the input df.
-#' @return a data.frame with the mean values of each numeric.
-#' @importFrom dplyr summarise_if
-#' @author John Doe 
-#' @export 
-#' @examples 
-#' data.frame(er = c(1,2,3), c(4,5,6)) %>% 
+#' @return a data.frame with the mean values of each numeric
+#' @importFrom magrittr %>%
+#' @author John Doe
+#' @export
+#' @examples
+#' library(magrittr)
+#' data.frame(x1 = c(1,2,3), x2 = c(4,5,6)) %>%
 #'   bloodstats::bloodmeans()
 bloodmeans <- function(df, var = NULL) {
 
@@ -607,18 +639,50 @@ bloodmeans <- function(df, var = NULL) {
   df %>%
     summarise_if(is.numeric, mean, na.rm = TRUE)
 }
+
 ```
+
+You most likely got an error:
+
+```
+test-bloodmeans.R:5: error: (unknown)
+could not find function "summarise_if"
+```
+
+To fix this substitute `summarise_if` above, with `dplyr::summarise_if`. If your
+tests pass now, run `devtools::document()` to update documentation and run also 
+a `devtools::check()`. Are the checks clean (is `rlang` dependency in DESCRIPTION?).
+When all is ok, bump your package's version number (what should it be?). 
+Install the new version locally `devtools::install()`, git add, commit and push 
+your updates to GitHub.
+
+```
+git status
+git add .
+git commit -m "add grouping variable in bloodmeans and bump version number"
+git push -u origin master
+```
+
+The last push to GitHub has hopefully triggered a new Travis-CI built. You can 
+check this from your travis-ci account. If your tests passed locally, the travis
+built will likely go through as well.
+
+> Step 10b is at the draft phase 
+
+#### Step 10b: Add demo data to the package
+
+TBW
 
 ## Further discussion on package development
 
-- When to build a package. Practical use cases:
-    - Data reading and cleaning functions
-    - Data analysis workflow with a demo vignettes
-- Writing tests
+- When to build a package. Examples of practical use cases:
+    - Data reading and cleaning functions, specific to the type of data your are
+    handling
+    - Data analysis workflow with a demo vignette 
+    - A set of vusalization tools
 - Package scope. Should a package have an overall scope? Is a package with a bunch of relatively unrelated functions or a not-well-defined scope better than no package at all?
-- Documentation and package datasets. Importance of examples and links to 
-functions from other packages.
-- Styling your code, e.g. `styler 1.0.0`
+
+> *'There is a lot to learn on package development, but don’t feel overwhelmed. Start with a minimal subset of useful features (e.g. just an R/ directory!) and build up over time. To paraphrase the Zen monk Shunryu Suzuki: “Each package is perfect the way it is — and it can use a little improvement”.'*
 
 ## Usefull links and references 
 
