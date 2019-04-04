@@ -3,7 +3,7 @@ title: "Writing sharable (R) code. Uh... and sharing it!"
 author: "Maria Kalimeri, Senior Data Scientist @ [Nightingale Health](https://nightingalehealth.com/)"
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output: 
-  github_document
+  html_document
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
