@@ -519,7 +519,6 @@ will will look like below.
 [![Build Status](https://travis-ci.org/mariakalimeri/bloodstats.svg?branch=master)](https://travis-ci.org/mariakalimeri/bloodstats)
 ```
 
-> Step 9 is in the draft phase.
 
 ### Step 9: Create your own R package drat repository
 
@@ -690,8 +689,6 @@ git push -u origin master
 The last push to GitHub has hopefully triggered a new Travis-CI built. You can 
 check this from your travis-ci account. If your tests passed locally, the travis
 built will likely go through as well.
-
-> Step 10b is at the draft phase 
 
 #### Step 10b: Add demo data to the package
 
