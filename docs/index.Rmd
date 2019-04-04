@@ -13,7 +13,8 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "figures/README-",
-  message = FALSE
+  message = FALSE, 
+  eval = FALSE
 )
 ```
 
@@ -60,7 +61,7 @@ simulated metabolomics dataset in our package's examples later on.)
 
 Let's create the minimum amount of subdirectories your package needs.
 
-```{r, eval = FALSE}
+```{r}
 # Navigate to the desired parent directory
 setwd("parent_directory")
 # Create the directory of your package with the minimum amount of subdirectories
@@ -694,7 +695,82 @@ built will likely go through as well.
 
 #### Step 10b: Add demo data to the package
 
-TBW
+Let's create a data frame with random values as carry-on data for this package. 
+
+We will place this in a subdirectory called `data` as is the most common location
+for package data. Each file in this directory should be a `.RData` file created by 
+`save()` containing a single object (with the same name as the file). The easiest 
+way to adhere to these rules is to use `devtools::use_data()`. 
+
+Let's write a small script to first create the data. We will place the script in 
+a subdirectory called `data-raw`. We don't need this subdirectory to the 
+in the bundled version of the package, so we also add it to `.Rbuildignore`.
+We do all the above with the following commant. 
+
+```{r}
+usethis::use_data_raw()
+```
+
+Create a script `generate_pkg_example_data.R` and save it inside `data-raw`.
+The contents of the script are shown below.
+
+```{r, eval = FALSE}
+# Create a data frame with random values
+#
+library(tidyverse)
+
+# Set random seed to make things reproducible
+set.seed(34)
+
+# Create data frame
+df_example <-
+  tibble(id = rep(paste0("id_", seq(1, 50)), 2),
+         biofluid = rep(c("blood", "urine"), each = 50),
+         males = sample(1:100, size = 100),
+         females = sample(1000:1200, size = 100))
+
+usethis::use_data(df_example, overwrite = TRUE)
+```
+
+The last line will create a folder data and add the example data frame inside it,
+in the proper format. (You may also add package `usethis` in the `Suggests` field 
+of your `DESCRIPTION` file.)
+
+Finally, you may also update the examples of `bloodmeans()` to demonstrate the 
+new feature with parameter `var`
+
+```{r}
+# Grouped bloodmeans
+bloodstats::df_example %>%
+    bloodstats::bloodmeans(var = group)
+```
+
+Next step is to add some documentation for the `df_example`. In the `R` 
+subdirectory, create a script called `data.R` with the following contents.
+
+```{r}
+#' Random Metabolic Data
+#'
+#' A dataframe with random data for blood and urine, males and females.
+#'
+#' @format A data frame (tibble) with 100 rows and 4 columns.
+#' \describe{
+#'   \item{id}{ID of individual.}
+#'   \item{biofluid}{Biofluid type, blood or urine}
+#'   \item{males}{Log odds for incident type 2 diabetes.}
+#'   \item{females}{Standard error.}
+#' }
+#' @source Generated with a random \code{set.seed(34)}
+"df_example"
+```
+
+Rerun `devtools::document()`, `devtools::check(document = FALSE)` and if all clear
+you can commit and push your changes to GitHub.
+
+There is one thing we didn't do and should have. That is, after updating the 
+`bloodmeans()` function to return grouped means if a valid variable name is 
+provided, we didn't add a unit test for this case. I will leave this as a take-home
+exercise for you. 
 
 ## Further discussion on package development
 

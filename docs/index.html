@@ -512,24 +512,9 @@ drat::insertPackage(&quot;bloodstats_0.0.1.tar.gz&quot;, &quot;drat&quot;)</code
 <p>Your friend, the R user that wants to use your collection of packages, as well as have an easy way to update them, has already been told that your R package repository is hosted in a GitHub repository named drat (e.g. <a href="https://mariakalimeri.github.io/drat/" class="uri">https://mariakalimeri.github.io/drat/</a>`). He now needs to add your drat repo to his list of R repositories:</p>
 <pre class="r"><code>drat::addRepo(&quot;mariakalimeri&quot;)</code></pre>
 <p>and he is good to go. E.g. he may type</p>
-<pre class="r"><code>available.packages(repos = getOption(&quot;repos&quot;)[&quot;mariakalimeri&quot;])
-#&gt;            Package      Version Priority Depends        Imports          
-#&gt; bloodstats &quot;bloodstats&quot; &quot;0.0.1&quot; NA       &quot;R (&gt;= 3.5.0)&quot; &quot;dplyr, magrittr&quot;
-#&gt;            LinkingTo Suggests   Enhances License             
-#&gt; bloodstats NA        &quot;testthat&quot; NA       &quot;MIT + file LICENSE&quot;
-#&gt;            License_is_FOSS License_restricts_use OS_type Archs
-#&gt; bloodstats NA              NA                    NA      NA   
-#&gt;            MD5sum                             NeedsCompilation File
-#&gt; bloodstats &quot;d5e174b717d5dd5dd9efaf2470ac35d6&quot; &quot;no&quot;             NA  
-#&gt;            Repository                                        
-#&gt; bloodstats &quot;https://mariakalimeri.github.io/drat/src/contrib&quot;</code></pre>
+<pre class="r"><code>available.packages(repos = getOption(&quot;repos&quot;)[&quot;mariakalimeri&quot;])</code></pre>
 <p>and hopefully see the available <code>bloodstats</code> packages sitting there happily with all its info. He can install and update packages the R-usual way, i.e.</p>
-<pre class="r"><code>install.packages(&quot;bloodstats&quot;)
-#&gt; Warning: unable to access index for repository https://mariakalimeri.github.io/drat/bin/macosx/el-capitan/contrib/3.5:
-#&gt;   cannot open URL 'https://mariakalimeri.github.io/drat/bin/macosx/el-capitan/contrib/3.5/PACKAGES'
-
-#&gt; Warning: unable to access index for repository https://mariakalimeri.github.io/drat/bin/macosx/el-capitan/contrib/3.5:
-#&gt;   cannot open URL 'https://mariakalimeri.github.io/drat/bin/macosx/el-capitan/contrib/3.5/PACKAGES'</code></pre>
+<pre class="r"><code>install.packages(&quot;bloodstats&quot;)</code></pre>
 <blockquote>
 <p>Mind that <code>drat::addRepo()</code> will add the new R repository only in the current running R session. To update your R repository list more permanently, open your <code>~/.Rprofile</code> and type</p>
 <pre><code>local({
@@ -600,7 +585,47 @@ git push -u origin master</code></pre>
 </div>
 <div id="step-10b-add-demo-data-to-the-package" class="section level4">
 <h4>Step 10b: Add demo data to the package</h4>
-<p>TBW</p>
+<p>Let’s create a data frame with random values as carry-on data for this package.</p>
+<p>We will place this in a subdirectory called <code>data</code> as is the most common location for package data. Each file in this directory should be a <code>.RData</code> file created by <code>save()</code> containing a single object (with the same name as the file). The easiest way to adhere to these rules is to use <code>devtools::use_data()</code>.</p>
+<p>Let’s write a small script to first create the data. We will place the script in a subdirectory called <code>data-raw</code>. We don’t need this subdirectory to the in the bundled version of the package, so we also add it to <code>.Rbuildignore</code>. We do all the above with the following commant.</p>
+<pre class="r"><code>usethis::use_data_raw()</code></pre>
+<p>Create a script <code>generate_pkg_example_data.R</code> and save it inside <code>data-raw</code>. The contents of the script are shown below.</p>
+<pre class="r"><code># Create a data frame with random values
+#
+library(tidyverse)
+
+# Set random seed to make things reproducible
+set.seed(34)
+
+# Create data frame
+df_example &lt;-
+  tibble(id = rep(paste0(&quot;id_&quot;, seq(1, 50)), 2),
+         biofluid = rep(c(&quot;blood&quot;, &quot;urine&quot;), each = 50),
+         males = sample(1:100, size = 100),
+         females = sample(1000:1200, size = 100))
+
+usethis::use_data(df_example, overwrite = TRUE)</code></pre>
+<p>The last line will create a folder data and add the example data frame inside it, in the proper format. (You may also add package <code>usethis</code> in the <code>Suggests</code> field of your <code>DESCRIPTION</code> file.)</p>
+<p>Finally, you may also update the examples of <code>bloodmeans()</code> to demonstrate the new feature with parameter <code>var</code></p>
+<pre class="r"><code># Grouped bloodmeans
+bloodstats::df_example %&gt;%
+    bloodstats::bloodmeans(var = group)</code></pre>
+<p>Next step is to add some documentation for the <code>df_example</code>. In the <code>R</code> subdirectory, create a script called <code>data.R</code> with the following contents.</p>
+<pre class="r"><code>#' Random Metabolic Data
+#'
+#' A dataframe with random data for blood and urine, males and females.
+#'
+#' @format A data frame (tibble) with 100 rows and 4 columns.
+#' \describe{
+#'   \item{id}{ID of individual.}
+#'   \item{biofluid}{Biofluid type, blood or urine}
+#'   \item{males}{Log odds for incident type 2 diabetes.}
+#'   \item{females}{Standard error.}
+#' }
+#' @source Generated with a random \code{set.seed(34)}
+&quot;df_example&quot;</code></pre>
+<p>Rerun <code>devtools::document()</code>, <code>devtools::check(document = FALSE)</code> and if all clear you can commit and push your changes to GitHub.</p>
+<p>There is one thing we didn’t do and should have. That is, after updating the <code>bloodmeans()</code> function to return grouped means if a valid variable name is provided, we didn’t add a unit test for this case. I will leave this as a take-home exercise for you.</p>
 </div>
 </div>
 </div>
