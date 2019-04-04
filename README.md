@@ -1,12 +1,16 @@
+Writing sharable (R) code. Uh... and sharing it!
+================
+Maria Kalimeri, Senior Data Scientist @ [Nightingale Health](https://nightingalehealth.com/)
+04 April 2019
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-Writing sharable (R) code. Uh... and sharing it!
-================================================
+Intro
+-----
 
 In this tutorial we will build an R package, write unit tests for it (steps 1-7), push it in a GitHub repository and integrate Travis CI with it (step 8). In step 9 we build a drat repository to host this and other R packages, using GitHub as a Web Server and set up Travis CI to automatically push updates of our package into drat. In step 10 we make some improvements in the package. We finish with providing sources for R package development and other relevant topics.
 
-Prerequisites:
---------------
+Prerequisites
+-------------
 
 -   (Optional) Rstudio; this is not necessary to produce R packages but it does make your life easier as the main package for R package development, `devtools`, is well integrated with RStudio.
 -   The following R packages:
@@ -426,7 +430,27 @@ available.packages(repos = getOption("repos")["mariakalimeri"])
 #> bloodstats "https://mariakalimeri.github.io/drat/src/contrib"
 ```
 
-and hopefully see the available `bloodstats` packages sitting there happily with all its info.
+and hopefully see the available `bloodstats` packages sitting there happily with all its info. He can install and update packages the R-usual way, i.e.
+
+``` r
+install.packages("bloodstats")
+#> Warning: unable to access index for repository https://mariakalimeri.github.io/drat/bin/macosx/el-capitan/contrib/3.5:
+#>   cannot open URL 'https://mariakalimeri.github.io/drat/bin/macosx/el-capitan/contrib/3.5/PACKAGES'
+
+#> Warning: unable to access index for repository https://mariakalimeri.github.io/drat/bin/macosx/el-capitan/contrib/3.5:
+#>   cannot open URL 'https://mariakalimeri.github.io/drat/bin/macosx/el-capitan/contrib/3.5/PACKAGES'
+```
+
+> Mind that `drat::addRepo()` will add the new R repository only in the current running R session. To update your R repository list more permanently, open your `~/.Rprofile` and type
+>
+>     local({
+>       r <- getOption("repos")
+>       r["CRAN"] <- "https://cran.rstudio.com/"
+>       r["mariakalimeri"] <- "https://mariakalimeri.github.io/drat/"
+>       options(repos = r)
+>     })
+>
+> where above I am also selecting the RStudio CRAN mirror.
 
 #### Step 9b: Combining Drat and Travis CI
 
