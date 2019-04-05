@@ -1,5 +1,6 @@
 ---
 title: "Writing sharable (R) code. Uh... and sharing it!"
+subtitle: "Presented at an [R-Ladies Helsinki](https://www.meetup.com/rladies-helsinki/) meeting on 04/04/2019"
 author: "Maria Kalimeri, Senior Data Scientist @ [Nightingale Health](https://nightingalehealth.com/)"
 date: "`r format(Sys.time(), '%d %B %Y')`"
 output: 
@@ -34,8 +35,9 @@ development and other relevant topics.
 - (Optional) Rstudio; this is not necessary to produce R packages but it 
 does make your life easier as the main package for R package development,
 `devtools`, is well integrated with RStudio.
+- (For Windows users only) Rtools which you can download [here](https://cran.r-project.org/bin/windows/Rtools/).
 - The following R packages: 
-    - `devtools` and `roxygen2` in order to build R packages 
+    - `devtools`, `usethis`, `testthat` and `roxygen2` in order to build R packages 
     - `tidyverse`, `rlang`
     - `drat`
 - (Optional) A github account. If you wish to replicate steps 8 onwards herein 
@@ -56,8 +58,7 @@ Hilary is building a cat-themed package, but in order to not discourage
 dog persons, I will go with a different theme. Let's make a package whose aim is
 to perform some basic statistics on blood metabolomics data. 
 (In fact, other than the slightly grotesque namings, the package's single
-demo utility has nothing specific to blood metabolomics; we will however add 
-simulated metabolomics dataset in our package's examples later on.) 
+demo utility has nothing specific to blood metabolomics.) 
 
 Let's create the minimum amount of subdirectories your package needs.
 
@@ -522,6 +523,14 @@ will will look like below.
 
 ### Step 9: Create your own R package drat repository
 
+Drat is a recursive acronym: [Drat R Archive Template](https://cran.r-project.org/web/packages/drat/index.html). 
+It's essentially an R package that allows for creation and use of R Repositories 
+via helper functions that insert packages into a repository, and add repository 
+information to the current R session. 
+
+Having an R repository of your own makes sense when you build, distribute and 
+maintain more than one or two R packages.
+
 #### Step 9a: Create a `drat` git repository in GitHub
 
 [source: Drat for package authors](http://eddelbuettel.github.io/drat/DratForPackageAuthors.html)
@@ -613,6 +622,9 @@ running R session. To update your R repository list more permanently, open your
 
 #### Step 9b: Combining Drat and Travis CI
 
+*(I didn't have time to write down this section properly but the relevant link*
+*is provided below)*
+
 A next step is to allow Travis-CI to push automatic updates of `bloodstats` into 
 drat. To achieve this, use the link below and follow the steps in the `workflow` 
 section.
@@ -665,7 +677,7 @@ bloodmeans <- function(df, var = NULL) {
 
 ```
 
-You most likely got an error:
+Try running `devtools::test()` again. You most likely got an error:
 
 ```
 test-bloodmeans.R:5: error: (unknown)
@@ -675,7 +687,9 @@ could not find function "summarise_if"
 To fix this substitute `summarise_if` above, with `dplyr::summarise_if`. If your
 tests pass now, run `devtools::document()` to update documentation and run also 
 a `devtools::check()`. Are the checks clean (is `rlang` dependency in DESCRIPTION?).
-When all is ok, bump your package's version number (what should it be?). 
+When all is ok, bump your package's version number (what should it be? You now 
+added a new parameter to `bloodmeans` so you updated the interface of the function
+a bit. I would update the version to 0.1.0 at this point). 
 Install the new version locally `devtools::install()`, git add, commit and push 
 your updates to GitHub.
 
@@ -687,7 +701,7 @@ git push -u origin master
 ```
 
 The last push to GitHub has hopefully triggered a new Travis-CI built. You can 
-check this from your travis-ci account. If your tests passed locally, the travis
+check this from your travis-ci account. If your checks were clear locally, the travis
 built will likely go through as well.
 
 #### Step 10b: Add demo data to the package
@@ -793,4 +807,8 @@ exercise for you.
 - [R code styler](https://www.tidyverse.org/articles/2017/12/styler-1.0.0/)
 - [Software semantic versioning](https://semver.org/)
 
+- [R for Data Science](https://r4ds.had.co.nz/)
 
+
+
+-------------------

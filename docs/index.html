@@ -11,7 +11,7 @@
 
 <meta name="author" content="Maria Kalimeri, Senior Data Scientist @ Nightingale Health" />
 
-<meta name="date" content="2019-04-04" />
+<meta name="date" content="2019-04-05" />
 
 <title>Writing sharable (R) code. Uh… and sharing it!</title>
 
@@ -186,8 +186,9 @@ $(document).ready(function () {
 
 
 <h1 class="title toc-ignore">Writing sharable (R) code. Uh… and sharing it!</h1>
+<h3 class="subtitle"><em>Presented at an <a href="https://www.meetup.com/rladies-helsinki/">R-Ladies Helsinki</a> meeting on 04/04/2019</em></h3>
 <h4 class="author"><em>Maria Kalimeri, Senior Data Scientist @ <a href="https://nightingalehealth.com/">Nightingale Health</a></em></h4>
-<h4 class="date"><em>04 April 2019</em></h4>
+<h4 class="date"><em>05 April 2019</em></h4>
 
 </div>
 
@@ -201,9 +202,10 @@ $(document).ready(function () {
 <h2>Prerequisites</h2>
 <ul>
 <li>(Optional) Rstudio; this is not necessary to produce R packages but it does make your life easier as the main package for R package development, <code>devtools</code>, is well integrated with RStudio.</li>
+<li>(For Windows users only) Rtools which you can download <a href="https://cran.r-project.org/bin/windows/Rtools/">here</a>.</li>
 <li>The following R packages:
 <ul>
-<li><code>devtools</code> and <code>roxygen2</code> in order to build R packages</li>
+<li><code>devtools</code>, <code>usethis</code>, <code>testthat</code> and <code>roxygen2</code> in order to build R packages</li>
 <li><code>tidyverse</code>, <code>rlang</code></li>
 <li><code>drat</code></li>
 </ul></li>
@@ -215,7 +217,7 @@ $(document).ready(function () {
 <p>Let’s jump right into it by building a minimal R package following <a href="https://hilaryparker.com/2014/04/29/writing-an-r-package-from-scratch/">Hilary Parker’s building steps</a>. Afterwards, we can discuss when or why to build an R package along with some good practices. Most of the discussed topics below are taken from Hadley Wickham’s <a href="http://r-pkgs.had.co.nz/">R packages</a>.</p>
 <div id="step-1-create-a-package-directory" class="section level3">
 <h3>Step 1: Create a package directory</h3>
-<p>Hilary is building a cat-themed package, but in order to not discourage dog persons, I will go with a different theme. Let’s make a package whose aim is to perform some basic statistics on blood metabolomics data. (In fact, other than the slightly grotesque namings, the package’s single demo utility has nothing specific to blood metabolomics; we will however add simulated metabolomics dataset in our package’s examples later on.)</p>
+<p>Hilary is building a cat-themed package, but in order to not discourage dog persons, I will go with a different theme. Let’s make a package whose aim is to perform some basic statistics on blood metabolomics data. (In fact, other than the slightly grotesque namings, the package’s single demo utility has nothing specific to blood metabolomics.)</p>
 <p>Let’s create the minimum amount of subdirectories your package needs.</p>
 <pre class="r"><code># Navigate to the desired parent directory
 setwd(&quot;parent_directory&quot;)
@@ -480,13 +482,12 @@ git push -u origin master</code></pre>
 <p>Fingers crossed and your build will pass!</p>
 <p>Finally, open your README.Rmd and add a travis CI status icon if you wish. You can find and copy the <code>Status Image</code> if you click on the <code>build | unknown</code> icon next to the Travis-CI project title on the travis-ci webpage. Choose an icon for the master branch (in the first drop down menu) and Markdown (in the second drop down menu). The two lines of code that you should add to the README file will will look like below.</p>
 <pre><code>[![Build Status](https://travis-ci.org/mariakalimeri/bloodstats.svg?branch=master)](https://travis-ci.org/mariakalimeri/bloodstats)</code></pre>
-<blockquote>
-<p>Step 9 is in the draft phase.</p>
-</blockquote>
 </div>
 </div>
 <div id="step-9-create-your-own-r-package-drat-repository" class="section level3">
 <h3>Step 9: Create your own R package drat repository</h3>
+<p>Drat is a recursive acronym: <a href="https://cran.r-project.org/web/packages/drat/index.html">Drat R Archive Template</a>. It’s essentially an R package that allows for creation and use of R Repositories via helper functions that insert packages into a repository, and add repository information to the current R session.</p>
+<p>Having an R repository of your own makes sense when you build, distribute and maintain more than one or two R packages.</p>
 <div id="step-9a-create-a-drat-git-repository-in-github" class="section level4">
 <h4>Step 9a: Create a <code>drat</code> git repository in GitHub</h4>
 <p><a href="http://eddelbuettel.github.io/drat/DratForPackageAuthors.html">source: Drat for package authors</a></p>
@@ -528,6 +529,7 @@ drat::insertPackage(&quot;bloodstats_0.0.1.tar.gz&quot;, &quot;drat&quot;)</code
 </div>
 <div id="step-9b-combining-drat-and-travis-ci" class="section level4">
 <h4>Step 9b: Combining Drat and Travis CI</h4>
+<p><em>(I didn’t have time to write down this section properly but the relevant link</em> <em>is provided below)</em></p>
 <p>A next step is to allow Travis-CI to push automatic updates of <code>bloodstats</code> into drat. To achieve this, use the link below and follow the steps in the <code>workflow</code> section.</p>
 <p><a href="https://cran.r-project.org/web/packages/drat/vignettes/CombiningDratAndTravis.html">source: Use Travis CI for automatic pushes of succesfull builds into drat</a></p>
 </div>
@@ -570,18 +572,15 @@ bloodmeans &lt;- function(df, var = NULL) {
     summarise_if(is.numeric, mean, na.rm = TRUE)
 }
 </code></pre>
-<p>You most likely got an error:</p>
+<p>Try running <code>devtools::test()</code> again. You most likely got an error:</p>
 <pre><code>test-bloodmeans.R:5: error: (unknown)
 could not find function &quot;summarise_if&quot;</code></pre>
-<p>To fix this substitute <code>summarise_if</code> above, with <code>dplyr::summarise_if</code>. If your tests pass now, run <code>devtools::document()</code> to update documentation and run also a <code>devtools::check()</code>. Are the checks clean (is <code>rlang</code> dependency in DESCRIPTION?). When all is ok, bump your package’s version number (what should it be?). Install the new version locally <code>devtools::install()</code>, git add, commit and push your updates to GitHub.</p>
+<p>To fix this substitute <code>summarise_if</code> above, with <code>dplyr::summarise_if</code>. If your tests pass now, run <code>devtools::document()</code> to update documentation and run also a <code>devtools::check()</code>. Are the checks clean (is <code>rlang</code> dependency in DESCRIPTION?). When all is ok, bump your package’s version number (what should it be? You now added a new parameter to <code>bloodmeans</code> so you updated the interface of the function a bit. I would update the version to 0.1.0 at this point). Install the new version locally <code>devtools::install()</code>, git add, commit and push your updates to GitHub.</p>
 <pre><code>git status
 git add .
 git commit -m &quot;add grouping variable in bloodmeans and bump version number&quot;
 git push -u origin master</code></pre>
-<p>The last push to GitHub has hopefully triggered a new Travis-CI built. You can check this from your travis-ci account. If your tests passed locally, the travis built will likely go through as well.</p>
-<blockquote>
-<p>Step 10b is at the draft phase</p>
-</blockquote>
+<p>The last push to GitHub has hopefully triggered a new Travis-CI built. You can check this from your travis-ci account. If your checks were clear locally, the travis built will likely go through as well.</p>
 </div>
 <div id="step-10b-add-demo-data-to-the-package" class="section level4">
 <h4>Step 10b: Add demo data to the package</h4>
@@ -654,8 +653,10 @@ bloodstats::df_example %&gt;%
 <li><a href="https://help.github.com/categories/github-pages-basics/">How to create a GitHub page for your project</a></li>
 <li><a href="https://cran.r-project.org/web/packages/dplyr/vignettes/programming.html">Tidy evaluation</a> and <a href="https://edwinth.github.io/blog/dplyr-recipes/">most common actions</a></li>
 <li><a href="https://www.tidyverse.org/articles/2017/12/styler-1.0.0/">R code styler</a></li>
-<li><a href="https://semver.org/">Software semantic versioning</a></li>
+<li><p><a href="https://semver.org/">Software semantic versioning</a></p></li>
+<li><p><a href="https://r4ds.had.co.nz/">R for Data Science</a></p></li>
 </ul>
+<hr />
 </div>
 
 
